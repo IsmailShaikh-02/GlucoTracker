@@ -1,0 +1,209 @@
+/* =========================
+   MODAL (dark luxury)
+   ========================= */
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: rgba(10, 10, 14, 0.85);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+}
+
+.modal-content {
+  background: #121217;
+  border-radius: 14px;
+
+  padding: 26px;
+  width: 320px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  color: #e8e8ec;
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.modal-content p {
+  font-size: 14px;
+  color: #a8a8b3;
+}
+
+
+/* =========================
+   BUTTONS (premium subtle)
+   ========================= */
+
+.modal button {
+  margin: 10px 6px 0;
+  padding: 8px 14px;
+
+  border-radius: 8px;
+  border: 1px solid transparent;
+
+  cursor: pointer;
+  font-size: 13.5px;
+
+  transition: all 0.2s ease;
+}
+
+/* Primary */
+#startTour {
+  background: #00b37a;
+    box-shadow: 0 4px 20px rgba(0,229,160,0.25);
+
+  color: #111;
+}
+
+#startTour:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,229,160,0.4);
+}
+
+/* Secondary */
+#skipTour {
+  background: transparent;
+  color: #b0b0ba;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#skipTour:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+
+/* =========================
+   DRIVER POPOVER (dark luxury)
+   ========================= */
+
+.driver-popover {
+  background: #15151b !important;
+  color: #e6e6eb !important;
+
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+
+  padding: 16px 18px;
+}
+
+.driver-popover-header {
+  margin-bottom: 4px !important;   /* reduce space below title */
+  padding-bottom: 0 !important;
+  border-bottom: none !important;  /* remove divider line */
+}.driver-popover-header::after {
+  display: none !important;
+}
+/* Title */
+.driver-popover-title {
+  background: transparent !important;   /* remove black background */
+
+  border-radius: 8px;                  /* rounded edges */
+  padding: 2px 8px 2px 0 !important; /* minimal vertical padding */
+  margin: 0 !important;
+
+  line-height: 1 !important;          /* removes extra text spacing */
+  display: inline-block;             /* shrink to content */
+
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  color: #9a9aa6 !important;
+  font-weight: 500;
+
+}
+/* Description */
+.driver-popover-description {
+  font-size: 15px;
+  color: #cfcfd6 !important;
+  line-height: 1.5;
+}
+
+/* Footer */
+.driver-popover-footer {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+
+/* =========================
+   CLOSE BUTTON (RIGHT SIDE)
+   ========================= */
+
+.driver-popover .driver-popover-close-btn {
+  position: absolute !important;
+  right: 12px !important;
+  left: auto !important;
+  top: 10px !important;
+}
+
+
+/* =========================
+   BUTTON RESET (fix duplicates)
+   ========================= */
+
+.driver-popover-next-btn::before,
+.driver-popover-next-btn::after {
+  content: none !important;
+}
+
+.driver-popover-next-btn,
+.driver-popover-prev-btn,
+.driver-popover-close-btn {
+  all: unset;
+  cursor: pointer;
+
+  padding: 6px 12px;
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+
+/* Primary action */
+.driver-popover-next-btn {
+  background: #ffffff;
+  color: #111;
+}
+
+.driver-popover-next-btn:hover {
+  background: #e5e5e8;
+}
+
+
+/* Secondary actions */
+.driver-popover-prev-btn,
+.driver-popover-close-btn {
+  color: #9a9aa6;
+}
+
+.driver-popover-prev-btn:hover,
+.driver-popover-close-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #000;
+}
