@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+  
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.css">
+
+  <link rel="stylesheet" href="tour_styling.css"><meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0a0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -760,6 +765,15 @@ textarea {
 </header>
 
 <main>
+<!-- Start Tour Modal -->
+  <div id="tourModal" class="modal">
+    <div class="modal-content">
+      <h3>Get Started</h3>
+      <p>A quick guide to help you log and track your readings with ease.</p>
+      <button id="startTour">Start Tour</button>
+      <button id="skipTour">Skip</button>
+    </div>
+  </div>
 
   <!-- HERO STATS -->
   <div class="hero-stats">
@@ -808,19 +822,19 @@ textarea {
     </div>
     <div class="panel-body">
       <div class="form-row">
-        <div class="field">
+        <div id="tourDate" class="field">
           <label>Date</label>
           <input type="date" id="inputDate">
         </div>
-        <div class="field">
+        <div id="tourTime" class="field">
           <label>Time</label>
           <input type="time" id="inputTime">
         </div>
-        <div class="field">
+        <div id="tourRead" class="field">
           <label>Glucose (mg/dL)</label>
           <input type="number" id="inputGlucose" placeholder="e.g. 120" min="20" max="600">
         </div>
-        <div class="field">
+        <div class="field" id="tourType">
           <label>Reading Type</label>
           <select id="inputType">
             <option value="before">🌿 Before Food (Fasting)</option>
@@ -838,8 +852,8 @@ textarea {
             <div class="meal-tag" data-meal="bedtime"   onclick="selectMeal(this)">🌛 Bedtime</div>
           </div>
         </div>
-        <div class="field" style="align-self:end">
-          <button class="add-btn" onclick="addReading()">＋ Add</button>
+        <div class="field" style="align-self:end" id="tourAdd">
+          <button class="add-btn" onclick="addReading()" id="myButton">＋ Add</button>
         </div>
       </div>
       <div class="notes-row">
@@ -853,9 +867,9 @@ textarea {
 
   <!-- CHARTS -->
   <div class="section-label">Trend Analysis</div>
-  <div class="charts-grid">
+  <div class="charts-grid" id="tourChart">
 
-    <div class="chart-panel">
+    <div class="chart-panel" id="tourAdd">
       <div class="chart-panel-header">
         <div class="chart-title-group">
           <div class="chart-label green">Fasting / Pre-meal</div>
@@ -912,7 +926,7 @@ textarea {
   </div>
 
   <!-- TABLE -->
-  <div class="table-panel">
+  <div class="table-panel" id="tourLogs">
     <div class="panel-header">
       <div class="panel-title">📋 Reading Log</div>
       <div class="filter-bar">
@@ -963,6 +977,8 @@ textarea {
 </main>
 
 <div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/driver.js/dist/driver.js.iife.js"></script>
+<script src="tour_script.js"></script>
 
 <script>
 // ═══════════════════════════════════════════════════
