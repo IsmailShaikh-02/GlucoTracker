@@ -739,7 +739,7 @@ textarea {
 
 <!-- PWA INSTALL BAR -->
 <div id="pwaBar">
-  <p>📲 <strong>Install GlucoTrack</strong> — Add to your home screen for quick access, offline support & notifications</p>
+  <p>📲 <strong>Install GlucoTrack</strong></p>
   <div class="pwa-actions">
     <button class="btn btn-accent" id="pwaInstallBtn">Install App</button>
     <button class="btn" onclick="document.getElementById('pwaBar').classList.remove('show')">Dismiss</button>
@@ -754,12 +754,6 @@ textarea {
       <h1>GlucoTrack</h1>
       <span>Pro</span>
     </div>
-  </div>
-  <div class="header-right">
-    <button id="installBtn" onclick="triggerInstall()">📲 Install App</button>
-    <button class="btn" onclick="exportTXT()">⬇ Export</button>
-    <button class="btn" onclick="importFile()">⬆ Import</button>
-    <input type="file" id="importInput" accept=".txt,.json" style="display:none" onchange="handleImport(event)">
   </div>
 </header>
 
