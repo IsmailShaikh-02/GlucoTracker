@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GlucoTrack">
+<link rel="manifest" id="manifestLink">
+<title>GlucoTrack Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --card: #16161f;
+  --card2: #1a1a26;
+  --border: #2a2a3d;
+  --border2: #333348;
+  --accent: #00e5a0;
+  --accent-dim: rgba(0,229,160,0.12);
+  --accent-glow: rgba(0,229,160,0.25);
+  --gold: #ffb347;
+  --gold-dim: rgba(255,179,71,0.12);
+  --red: #ff5370;
+  --red-dim: rgba(255,83,112,0.12);
+  --blue: #4fc3f7;
+  --blue-dim: rgba(79,195,247,0.12);
+  --purple: #b39ddb;
+  --purple-dim: rgba(179,157,219,0.12);
+  --text: #f0f0ff;
+  --text2: #a0a0c0;
+  --text3: #606080;
+  --radius: 20px;
+  --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ANIMATED BACKGROUND */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 20%, rgba(0,229,160,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 300px at 80% 80%, rgba(255,179,71,0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 60% 30%, rgba(179,157,219,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body > * { position: relative; z-index: 1; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── HEADER ── */
+header {
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.logo { display: flex; align-items: center; gap: 14px; }
+
+.logo-mark {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, #00e5a0, #00b37a);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 20px rgba(0,229,160,0.3);
+  position: relative;
+}
+
+.logo-mark::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(0,229,160,0.5), transparent);
+  z-index: -1;
+}
+
+.logo-text h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #fff, #a0a0c0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+.logo-text span {
+  font-size: 0.7rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+/* INSTALL BUTTON */
+#installBtn {
+  display: none;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--accent), #00b37a);
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  gap: 6px;
+  align-items: center;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 16px rgba(0,229,160,0.3);
+  transition: all 0.2s;
+}
+#installBtn.visible { display: flex; }
+#installBtn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,229,160,0.4); }
+
+.btn {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--border2); color: var(--text); background: var(--card2); }
+.btn-accent {
+  background: var(--accent-dim);
+  border-color: rgba(0,229,160,0.3);
+  color: var(--accent);
+}
+.btn-accent:hover { background: rgba(0,229,160,0.2); border-color: var(--accent); }
+
+/* ── MAIN ── */
+main { max-width: 1440px; margin: 0 auto; padding: 32px 40px 80px; }
+
+/* ── HERO STATS ── */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.hstat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+  cursor: default;
+}
+
+.hstat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.hstat-glow {
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  opacity: 0.12;
+  filter: blur(30px);
+}
+
+.hstat.g .hstat-glow { background: var(--accent); }
+.hstat.y .hstat-glow { background: var(--gold); }
+.hstat.b .hstat-glow { background: var(--blue); }
+.hstat.r .hstat-glow { background: var(--red); }
+
+.hstat-icon {
+  font-size: 1.6rem;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.hstat-val {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1px;
+  margin-bottom: 6px;
+}
+
+.hstat.g .hstat-val { color: var(--accent); }
+.hstat.y .hstat-val { color: var(--gold); }
+.hstat.b .hstat-val { color: var(--blue); }
+.hstat.r .hstat-val { color: var(--red); }
+
+.hstat-label { font-size: 0.78rem; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; }
+.hstat-sub { font-size: 0.72rem; color: var(--text3); margin-top: 4px; }
+
+.hstat-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.hstat.g .hstat-bar { background: linear-gradient(90deg, var(--accent), transparent); }
+.hstat.y .hstat-bar { background: linear-gradient(90deg, var(--gold), transparent); }
+.hstat.b .hstat-bar { background: linear-gradient(90deg, var(--blue), transparent); }
+.hstat.r .hstat-bar { background: linear-gradient(90deg, var(--red), transparent); }
+
+/* ── ADD READING PANEL ── */
+.add-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 28px;
+  overflow: hidden;
+  position: relative;
+}
+
+.add-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+}
+
+.panel-header {
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.3px;
+}
+
+.panel-title .pill {
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.panel-body { padding: 24px 28px; }
+
+/* FORM */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr 1.2fr 1.5fr auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.field { display: flex; flex-direction: column; gap: 7px; }
+
+.field label {
+  font-size: 0.72rem;
+  color: var(--text3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+input, select, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 11px 14px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+  font-family: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(0,229,160,0.5);
+  box-shadow: 0 0 0 3px rgba(0,229,160,0.08);
+  background: rgba(0,229,160,0.03);
+}
+
+select option { background: #1a1a26; }
+
+/* MEAL TAGS */
+.meal-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meal-tag {
+  padding: 8px 14px;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.meal-tag:hover { border-color: var(--border2); color: var(--text); }
+.meal-tag.active {
+  border-color: transparent;
+  color: #000;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+
+.meal-tag[data-meal="breakfast"].active { background: linear-gradient(135deg, #ff9a5c, #ff6b35); }
+.meal-tag[data-meal="lunch"].active     { background: linear-gradient(135deg, #56c596, #00b37a); }
+.meal-tag[data-meal="dinner"].active    { background: linear-gradient(135deg, #7986cb, #5c6bc0); }
+.meal-tag[data-meal="snack"].active     { background: linear-gradient(135deg, #ffd54f, #ffb300); }
+.meal-tag[data-meal="fasting"].active   { background: linear-gradient(135deg, #4fc3f7, #0288d1); }
+.meal-tag[data-meal="bedtime"].active   { background: linear-gradient(135deg, #ce93d8, #9c27b0); }
+
+.add-btn {
+  height: 44px;
+  padding: 0 28px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: linear-gradient(135deg, var(--accent), #00b37a);
+  color: #000;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 20px rgba(0,229,160,0.25);
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,229,160,0.4);
+}
+
+.add-btn:active { transform: translateY(0); }
+
+/* ── CHARTS SECTION ── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.chart-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-panel-header {
+  padding: 20px 24px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.chart-title-group {}
+
+.chart-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.chart-label.green { color: var(--accent); }
+.chart-label.gold { color: var(--gold); }
+
+.chart-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.chart-target {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin-top: 3px;
+}
+
+.chart-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chart-badge.green { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
+.chart-badge.gold { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(255,179,71,0.2); }
+
+.chart-body {
+  padding: 16px 20px 20px;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 260px;
+}
+
+.chart-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.73rem;
+  color: var(--text3);
+}
+
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+.chart-hint {
+  font-size: 0.7rem;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── MEAL CHART ── */
+.meal-chart-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+
+/* ── TABLE PANEL ── */
+.table-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-bar input,
+.filter-bar select {
+  width: auto;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  height: 36px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+thead { position: sticky; top: 0; z-index: 5; }
+
+th {
+  background: var(--surface);
+  padding: 12px 18px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 13px 18px;
+  border-bottom: 1px solid rgba(42,42,61,0.6);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* BADGES */
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-before { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
+.badge-after  { background: var(--gold-dim);   color: var(--gold);   border: 1px solid rgba(255,179,71,0.2); }
+
+.meal-chip {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.meal-chip-breakfast { background: rgba(255,107,53,0.15); color: #ff9a5c; }
+.meal-chip-lunch     { background: rgba(0,179,122,0.15);  color: #56c596; }
+.meal-chip-dinner    { background: rgba(92,107,192,0.15); color: #7986cb; }
+.meal-chip-snack     { background: rgba(255,179,0,0.15);  color: #ffd54f; }
+.meal-chip-fasting   { background: rgba(79,195,247,0.15); color: #4fc3f7; }
+.meal-chip-bedtime   { background: rgba(179,157,219,0.15);color: #ce93d8; }
+.meal-chip-none      { background: var(--border); color: var(--text3); }
+
+.gval { font-weight: 800; font-size: 1rem; letter-spacing: -0.5px; }
+.gval-normal  { color: var(--accent); }
+.gval-high    { color: var(--red); }
+.gval-low     { color: var(--blue); }
+.gval-warning { color: var(--gold); }
+
+.status-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.status-normal  { background: var(--accent-dim); color: var(--accent); }
+.status-high    { background: var(--red-dim);    color: var(--red); }
+.status-low     { background: var(--blue-dim);   color: var(--blue); }
+.status-warning { background: var(--gold-dim);   color: var(--gold); }
+
+.del-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.del-btn:hover { color: var(--red); background: var(--red-dim); }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text3);
+}
+.empty-state .eicon { font-size: 3.5rem; margin-bottom: 14px; opacity: 0.5; }
+.empty-state p { font-size: 0.9rem; line-height: 1.6; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 13px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  transform: translateY(80px) scale(0.95);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 340px;
+  backdrop-filter: blur(12px);
+}
+#toast.show { transform: translateY(0) scale(1); opacity: 1; }
+#toast.success { border-left: 3px solid var(--accent); }
+#toast.error   { border-left: 3px solid var(--red); }
+#toast.info    { border-left: 3px solid var(--blue); }
+
+/* ── PWA INSTALL BANNER ── */
+#pwaBar {
+  display: none;
+  background: linear-gradient(135deg, rgba(0,229,160,0.1), rgba(0,179,122,0.05));
+  border-bottom: 1px solid rgba(0,229,160,0.2);
+  padding: 10px 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#pwaBar.show { display: flex; }
+#pwaBar p { font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+#pwaBar p strong { color: var(--accent); }
+.pwa-actions { display: flex; gap: 8px; }
+
+/* ── DIVIDER ── */
+.section-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text3);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .form-row { grid-template-columns: 1fr 1fr 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  header { padding: 0 20px; }
+  main { padding: 20px 16px 80px; }
+  .hero-stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hstat { padding: 18px; }
+  .hstat-val { font-size: 1.9rem; }
+  .form-row { grid-template-columns: 1fr 1fr; }
+  #pwaBar { padding: 10px 20px; }
+  .panel-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .filter-bar { width: 100%; }
+}
+
+/* ── PULSE ANIMATION ── */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,229,160,0.4); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0,229,160,0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,229,160,0); }
+}
+
+.logo-mark { animation: pulse-ring 3s infinite; }
+
+/* ── NUMBER INPUT ARROWS HIDE ── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* ── NOTES TEXTAREA ── */
+.notes-row { margin-top: 14px; display: flex; gap: 14px; align-items: flex-end; }
+.notes-row .field { flex: 1; }
+textarea {
+  resize: none;
+  height: 44px;
+  line-height: 1.4;
+  padding: 11px 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- PWA INSTALL BAR -->
+<div id="pwaBar">
+  <p>📲 <strong>Install GlucoTrack</strong> — Add to your home screen for quick access, offline support & notifications</p>
+  <div class="pwa-actions">
+    <button class="btn btn-accent" id="pwaInstallBtn">Install App</button>
+    <button class="btn" onclick="document.getElementById('pwaBar').classList.remove('show')">Dismiss</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">✚</div>
+    <div class="logo-text">
+      <h1>GlucoTrack</h1>
+      <span>Pro</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button id="installBtn" onclick="triggerInstall()">📲 Install App</button>
+    <button class="btn" onclick="exportTXT()">⬇ Export</button>
+    <button class="btn" onclick="importFile()">⬆ Import</button>
+    <input type="file" id="importInput" accept=".txt,.json" style="display:none" onchange="handleImport(event)">
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO STATS -->
+  <div class="hero-stats">
+    <div class="hstat g">
+      <div class="hstat-glow"></div>
+      <span class="hstat-icon">🌿</span>
+      <div class="hstat-val" id="avgBefore">—</div>
+      <div class="hstat-label">Avg Before Food</div>
+      <div class="hstat-sub">Target: 80–130 mg/dL</div>
+      <div class="hstat-bar"></div>
+    </div>
+    <div class="hstat y">
+      <div class="hstat-glow"></div>
+      <span class="hstat-icon">🍽</span>
+      <div class="hstat-val" id="avgAfter">—</div>
+      <div class="hstat-label">Avg After Food</div>
+      <div class="hstat-sub">Target: &lt;180 mg/dL</div>
+      <div class="hstat-bar"></div>
+    </div>
+    <div class="hstat b">
+      <div class="hstat-glow"></div>
+      <span class="hstat-icon">📊</span>
+      <div class="hstat-val" id="totalReadings">0</div>
+      <div class="hstat-label">Total Readings</div>
+      <div class="hstat-sub">All logged entries</div>
+      <div class="hstat-bar"></div>
+    </div>
+    <div class="hstat r">
+      <div class="hstat-glow"></div>
+      <span class="hstat-icon">⚠️</span>
+      <div class="hstat-val" id="highCount">0</div>
+      <div class="hstat-label">High Alerts</div>
+      <div class="hstat-sub">Above target range</div>
+      <div class="hstat-bar"></div>
+    </div>
+  </div>
+
+  <!-- ADD READING -->
+  <div class="add-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        Add Reading
+        <span class="pill">New Entry</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text3)">Press Enter to submit quickly</div>
+    </div>
+    <div class="panel-body">
+      <div class="form-row">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="inputDate">
+        </div>
+        <div class="field">
+          <label>Time</label>
+          <input type="time" id="inputTime">
+        </div>
+        <div class="field">
+          <label>Glucose (mg/dL)</label>
+          <input type="number" id="inputGlucose" placeholder="e.g. 120" min="20" max="600">
+        </div>
+        <div class="field">
+          <label>Reading Type</label>
+          <select id="inputType">
+            <option value="before">🌿 Before Food (Fasting)</option>
+            <option value="after">🍽 After Food (Post-meal)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Meal Tag</label>
+          <div class="meal-tags" id="mealTags">
+            <div class="meal-tag" data-meal="breakfast" onclick="selectMeal(this)">🌅 Breakfast</div>
+            <div class="meal-tag" data-meal="lunch"     onclick="selectMeal(this)">☀️ Lunch</div>
+            <div class="meal-tag" data-meal="dinner"    onclick="selectMeal(this)">🌙 Dinner</div>
+            <div class="meal-tag" data-meal="snack"     onclick="selectMeal(this)">🍎 Snack</div>
+            <div class="meal-tag" data-meal="fasting"   onclick="selectMeal(this)">💧 Fasting</div>
+            <div class="meal-tag" data-meal="bedtime"   onclick="selectMeal(this)">🌛 Bedtime</div>
+          </div>
+        </div>
+        <div class="field" style="align-self:end">
+          <button class="add-btn" onclick="addReading()">＋ Add</button>
+        </div>
+      </div>
+      <div class="notes-row">
+        <div class="field">
+          <label>Notes (optional)</label>
+          <textarea id="inputNotes" placeholder="e.g. heavy carbs, skipped meds, stress day…"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="section-label">Trend Analysis</div>
+  <div class="charts-grid">
+
+    <div class="chart-panel">
+      <div class="chart-panel-header">
+        <div class="chart-title-group">
+          <div class="chart-label green">Fasting / Pre-meal</div>
+          <div class="chart-title">Before Food Glucose</div>
+          <div class="chart-target">Target range: 80–130 mg/dL</div>
+        </div>
+        <div class="chart-badge green" id="beforeAvgBadge">— mg/dL avg</div>
+      </div>
+      <div class="chart-body">
+        <div class="chart-wrap"><canvas id="chartBefore"></canvas></div>
+        <div class="chart-footer">
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Normal</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>High</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Low</div>
+          </div>
+          <div class="chart-hint">🖱 Scroll to zoom · Drag to pan</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-panel-header">
+        <div class="chart-title-group">
+          <div class="chart-label gold">Post-meal</div>
+          <div class="chart-title">After Food Glucose</div>
+          <div class="chart-target">Target range: &lt;180 mg/dL</div>
+        </div>
+        <div class="chart-badge gold" id="afterAvgBadge">— mg/dL avg</div>
+      </div>
+      <div class="chart-body">
+        <div class="chart-wrap"><canvas id="chartAfter"></canvas></div>
+        <div class="chart-footer">
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Normal</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>High</div>
+          </div>
+          <div class="chart-hint">🖱 Scroll to zoom · Drag to pan</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MEAL BREAKDOWN CHART -->
+  <div class="meal-chart-panel">
+    <div class="panel-header">
+      <div class="panel-title">🍽 Average by Meal Tag</div>
+      <div style="font-size:0.75rem;color:var(--text3)">Tap bars to explore</div>
+    </div>
+    <div class="panel-body">
+      <div style="position:relative;height:200px"><canvas id="chartMeal"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-panel">
+    <div class="panel-header">
+      <div class="panel-title">📋 Reading Log</div>
+      <div class="filter-bar">
+        <input type="date" id="filterFrom" onchange="renderTable()">
+        <input type="date" id="filterTo"   onchange="renderTable()">
+        <select id="filterType" onchange="renderTable()">
+          <option value="all">All Types</option>
+          <option value="before">Before Food</option>
+          <option value="after">After Food</option>
+        </select>
+        <select id="filterMeal" onchange="renderTable()">
+          <option value="all">All Meals</option>
+          <option value="breakfast">Breakfast</option>
+          <option value="lunch">Lunch</option>
+          <option value="dinner">Dinner</option>
+          <option value="snack">Snack</option>
+          <option value="fasting">Fasting</option>
+          <option value="bedtime">Bedtime</option>
+        </select>
+        <button class="btn" onclick="clearFilters()">✕ Clear</button>
+        <button class="btn" style="color:var(--red);border-color:rgba(255,83,112,0.2);background:var(--red-dim)" onclick="clearAll()">🗑 Delete All</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Glucose</th>
+            <th>Type</th>
+            <th>Meal</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state" style="display:none">
+        <div class="eicon">🩺</div>
+        <p>No readings match your filters.<br>Add your first glucose reading above.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+const KEY = 'glucotrack_v2';
+let readings = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } })();
+let selectedMeal = null;
+let chartBefore = null, chartAfter = null, chartMeal = null;
+let deferredPrompt = null;
+
+function save() { localStorage.setItem(KEY, JSON.stringify(readings)); }
+
+// ═══════════════════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════════════════
+// Manifest injection
+const manifest = {
+  name: "GlucoTrack Pro",
+  short_name: "GlucoTrack",
+  description: "Personal glucose monitoring dashboard",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#0a0a0f",
+  theme_color: "#0a0a0f",
+  orientation: "portrait-primary",
+  icons: [
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300e5a0'/><text y='.9em' font-size='80' x='10'>🩸</text></svg>", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300e5a0'/><text y='.9em' font-size='80' x='10'>🩸</text></svg>", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+
+const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+document.getElementById('manifestLink').href = URL.createObjectURL(blob);
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'glucotrack-v1';
+    const ASSETS = ['./', './index.html'];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        caches.match(e.request).then(r => r || fetch(e.request).catch(() => new Response('Offline')))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL).catch(()=>{});
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').classList.add('visible');
+  document.getElementById('pwaBar').classList.add('show');
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBtn').classList.remove('visible');
+  document.getElementById('pwaBar').classList.remove('show');
+  showToast('🎉 GlucoTrack installed!', 'success');
+});
+
+function triggerInstall() {
+  if (!deferredPrompt) { showToast('Use browser menu → Add to Home Screen', 'info'); return; }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(c => {
+    if (c.outcome === 'accepted') showToast('🎉 Installing GlucoTrack…', 'success');
+    deferredPrompt = null;
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  document.getElementById('inputDate').value = now.toISOString().split('T')[0];
+  document.getElementById('inputTime').value = now.toTimeString().slice(0,5);
+  initCharts();
+  refresh();
+});
+
+// ═══════════════════════════════════════════════════
+// MEAL TAG SELECT
+// ═══════════════════════════════════════════════════
+function selectMeal(el) {
+  document.querySelectorAll('.meal-tag').forEach(t => t.classList.remove('active'));
+  if (selectedMeal === el.dataset.meal) {
+    selectedMeal = null;
+  } else {
+    el.classList.add('active');
+    selectedMeal = el.dataset.meal;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ADD / DELETE
+// ═══════════════════════════════════════════════════
+function addReading() {
+  const date    = document.getElementById('inputDate').value;
+  const time    = document.getElementById('inputTime').value;
+  const glucose = parseFloat(document.getElementById('inputGlucose').value);
+  const type    = document.getElementById('inputType').value;
+  const notes   = document.getElementById('inputNotes').value.trim();
+
+  if (!date || !time || isNaN(glucose)) { showToast('⚠️ Fill in date, time and glucose', 'error'); return; }
+  if (glucose < 20 || glucose > 600)    { showToast('⚠️ Value out of range (20–600)', 'error'); return; }
+
+  readings.push({ id: Date.now(), date, time, glucose, type, meal: selectedMeal || 'none', notes });
+  readings.sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  save();
+
+  document.getElementById('inputGlucose').value = '';
+  document.getElementById('inputNotes').value = '';
+  document.querySelectorAll('.meal-tag').forEach(t => t.classList.remove('active'));
+  selectedMeal = null;
+
+  refresh();
+  showToast('✅ Reading added', 'success');
+}
+
+function deleteReading(id) {
+  readings = readings.filter(r => r.id !== id);
+  save(); refresh();
+  showToast('🗑 Removed', 'success');
+}
+
+function clearAll() {
+  if (!confirm('Delete ALL readings? This cannot be undone.')) return;
+  readings = []; save(); refresh();
+  showToast('🗑 All data cleared', 'success');
+}
+
+// ═══════════════════════════════════════════════════
+// REFRESH
+// ═══════════════════════════════════════════════════
+function refresh() {
+  updateStats();
+  updateCharts();
+  renderTable();
+}
+
+// ═══════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════
+function updateStats() {
+  const before = readings.filter(r => r.type === 'before');
+  const after  = readings.filter(r => r.type === 'after');
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,r)=>s+r.glucose,0)/arr.length) : null;
+
+  const ab = avg(before), aa = avg(after);
+  document.getElementById('avgBefore').textContent = ab ?? '—';
+  document.getElementById('avgAfter').textContent  = aa ?? '—';
+  document.getElementById('totalReadings').textContent = readings.length;
+  document.getElementById('beforeAvgBadge').textContent = ab ? `${ab} mg/dL avg` : '— mg/dL avg';
+  document.getElementById('afterAvgBadge').textContent  = aa ? `${aa} mg/dL avg` : '— mg/dL avg';
+
+  const high = readings.filter(r =>
+    (r.type==='before' && r.glucose>130) || (r.type==='after' && r.glucose>180)
+  ).length;
+  document.getElementById('highCount').textContent = high;
+}
+
+// ═══════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════
+function initCharts() {
+  const zoomOpts = {
+    pan: { enabled: true, mode: 'x' },
+    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+  };
+
+  const baseOpts = (refLine) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 500, easing: 'easeInOutQuart' },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a1a26',
+        borderColor: '#2a2a3d',
+        borderWidth: 1,
+        titleColor: '#f0f0ff',
+        bodyColor: '#a0a0c0',
+        padding: 13,
+        cornerRadius: 10,
+        callbacks: { label: ctx => ` ${ctx.parsed.y} mg/dL` }
+      },
+      zoom: zoomOpts
+    },
+    scales: {
+      x: {
+        ticks: { color: '#606080', font: { size: 10 }, maxTicksLimit: 12 },
+        grid: { color: 'rgba(42,42,61,0.6)' },
+        border: { display: false }
+      },
+      y: {
+        ticks: { color: '#606080', font: { size: 10 } },
+        grid: { color: 'rgba(42,42,61,0.6)' },
+        border: { display: false },
+        min: 40
+      }
+    }
+  });
+
+  // Before chart
+  chartBefore = new Chart(
+    document.getElementById('chartBefore').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          borderColor: '#00e5a0',
+          backgroundColor: (ctx) => {
+            const g = ctx.chart.ctx.createLinearGradient(0,0,0,260);
+            g.addColorStop(0, 'rgba(0,229,160,0.18)');
+            g.addColorStop(1, 'rgba(0,229,160,0.01)');
+            return g;
+          },
+          borderWidth: 2.5,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#00e5a0',
+          pointBorderColor: '#0a0a0f',
+          pointBorderWidth: 2,
+          tension: 0.35,
+          fill: true
+        }]
+      },
+      options: baseOpts(130)
+    }
+  );
+
+  // After chart
+  chartAfter = new Chart(
+    document.getElementById('chartAfter').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          borderColor: '#ffb347',
+          backgroundColor: (ctx) => {
+            const g = ctx.chart.ctx.createLinearGradient(0,0,0,260);
+            g.addColorStop(0, 'rgba(255,179,71,0.18)');
+            g.addColorStop(1, 'rgba(255,179,71,0.01)');
+            return g;
+          },
+          borderWidth: 2.5,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#ffb347',
+          pointBorderColor: '#0a0a0f',
+          pointBorderWidth: 2,
+          tension: 0.35,
+          fill: true
+        }]
+      },
+      options: baseOpts(180)
+    }
+  );
+
+  // Meal breakdown bar chart
+  chartMeal = new Chart(
+    document.getElementById('chartMeal').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['Breakfast','Lunch','Dinner','Snack','Fasting','Bedtime'],
+        datasets: [{
+          label: 'Avg Glucose',
+          data: [0,0,0,0,0,0],
+          backgroundColor: [
+            'rgba(255,107,53,0.7)',
+            'rgba(86,197,150,0.7)',
+            'rgba(121,134,203,0.7)',
+            'rgba(255,213,79,0.7)',
+            'rgba(79,195,247,0.7)',
+            'rgba(206,147,216,0.7)'
+          ],
+          borderColor: [
+            '#ff6b35','#56c596','#7986cb','#ffd54f','#4fc3f7','#ce93d8'
+          ],
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1a26',
+            borderColor: '#2a2a3d',
+            borderWidth: 1,
+            callbacks: { label: ctx => ` ${ctx.parsed.y || '—'} mg/dL avg` }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#606080', font:{size:11} }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: '#606080', font:{size:10} }, grid: { color: 'rgba(42,42,61,0.6)' }, border: { display: false }, min: 0 }
+        }
+      }
+    }
+  );
+}
+
+function updateCharts() {
+  const before = readings.filter(r => r.type === 'before');
+  const after  = readings.filter(r => r.type === 'after');
+
+  const fmt = r => {
+    const d = new Date(r.date + 'T12:00:00');
+    return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short' }) + ' ' + r.time.slice(0,5);
+  };
+
+  const colorB = before.map(r => r.glucose > 130 ? '#ff5370' : r.glucose < 80 ? '#4fc3f7' : '#00e5a0');
+  const colorA = after.map(r =>  r.glucose > 180 ? '#ff5370' : '#ffb347');
+
+  chartBefore.data.labels = before.map(fmt);
+  chartBefore.data.datasets[0].data = before.map(r => r.glucose);
+  chartBefore.data.datasets[0].pointBackgroundColor = colorB;
+  chartBefore.update('none');
+
+  chartAfter.data.labels = after.map(fmt);
+  chartAfter.data.datasets[0].data = after.map(r => r.glucose);
+  chartAfter.data.datasets[0].pointBackgroundColor = colorA;
+  chartAfter.update('none');
+
+  // Meal breakdown
+  const meals = ['breakfast','lunch','dinner','snack','fasting','bedtime'];
+  const mealAvgs = meals.map(m => {
+    const arr = readings.filter(r => r.meal === m);
+    return arr.length ? Math.round(arr.reduce((s,r)=>s+r.glucose,0)/arr.length) : 0;
+  });
+  chartMeal.data.datasets[0].data = mealAvgs;
+  chartMeal.update('none');
+}
+
+// ═══════════════════════════════════════════════════
+// TABLE
+// ═══════════════════════════════════════════════════
+const MEAL_LABELS = {
+  breakfast:'🌅 Breakfast', lunch:'☀️ Lunch', dinner:'🌙 Dinner',
+  snack:'🍎 Snack', fasting:'💧 Fasting', bedtime:'🌛 Bedtime', none:'—'
+};
+
+function getFiltered() {
+  const from = document.getElementById('filterFrom').value;
+  const to   = document.getElementById('filterTo').value;
+  const type = document.getElementById('filterType').value;
+  const meal = document.getElementById('filterMeal').value;
+  return readings.filter(r => {
+    if (from && r.date < from) return false;
+    if (to   && r.date > to)   return false;
+    if (type !== 'all' && r.type !== type) return false;
+    if (meal !== 'all' && r.meal !== meal) return false;
+    return true;
+  });
+}
+
+function renderTable() {
+  const filtered = getFiltered();
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  const rev = [...filtered].reverse();
+
+  tbody.innerHTML = rev.map((r, i) => {
+    const s = getStatus(r);
+    const mealKey = r.meal || 'none';
+    const mealLabel = MEAL_LABELS[mealKey] || '—';
+    const notes = r.notes ? `<span style="color:var(--text3);font-size:0.78rem;max-width:160px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${r.notes}">${r.notes}</span>` : '<span style="color:var(--text3);font-size:0.75rem">—</span>';
+
+    return `<tr>
+      <td style="color:var(--text3);font-size:0.75rem">${filtered.length - i}</td>
+      <td style="font-weight:600">${fmtDate(r.date)}</td>
+      <td style="color:var(--text3)">${r.time}</td>
+      <td><span class="gval ${s.cls}">${r.glucose} <span style="font-size:0.7rem;font-weight:500;opacity:0.6">mg/dL</span></span></td>
+      <td><span class="badge ${r.type==='before'?'badge-before':'badge-after'}">${r.type==='before'?'🌿 Before':'🍽 After'}</span></td>
+      <td><span class="meal-chip meal-chip-${mealKey}">${mealLabel}</span></td>
+      <td><span class="status-pill status-${s.status}">${s.label}</span></td>
+      <td>${notes}</td>
+      <td><button class="del-btn" onclick="deleteReading(${r.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function getStatus(r) {
+  if (r.type === 'before') {
+    if (r.glucose < 80)  return { cls:'gval-low',    status:'low',    label:'⬇ Low' };
+    if (r.glucose > 130) return { cls:'gval-high',   status:'high',   label:'⬆ High' };
+    return                      { cls:'gval-normal', status:'normal', label:'✓ Normal' };
+  } else {
+    if (r.glucose > 180) return { cls:'gval-high',   status:'high',    label:'⬆ High' };
+    if (r.glucose > 160) return { cls:'gval-warning',status:'warning', label:'⚠ Border' };
+    return                      { cls:'gval-normal', status:'normal',  label:'✓ Normal' };
+  }
+}
+
+function fmtDate(d) {
+  const [y,m,day] = d.split('-');
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${day} ${mo[+m-1]} ${y}`;
+}
+
+function clearFilters() {
+  ['filterFrom','filterTo'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('filterType').value = 'all';
+  document.getElementById('filterMeal').value = 'all';
+  renderTable();
+}
+
+// ═══════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════════════
+function exportTXT() {
+  if (!readings.length) { showToast('No data to export', 'error'); return; }
+  const lines = [
+    'GlucoTrack Pro Export',
+    `Generated: ${new Date().toLocaleString('en-IN')}`,
+    `Total: ${readings.length} readings`,
+    '',
+    'DATE       | TIME  | GLUCOSE | TYPE   | MEAL       | NOTES',
+    '─'.repeat(70),
+    ...readings.map(r => `${r.date} | ${r.time} | ${String(r.glucose).padStart(7)} | ${r.type.padEnd(6)} | ${(r.meal||'none').padEnd(10)} | ${r.notes||''}`),
+    '',
+    '--- JSON Backup ---',
+    JSON.stringify(readings)
+  ];
+  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `glucotrack_${new Date().toISOString().split('T')[0]}.txt`;
+  a.click();
+  showToast('📄 Exported successfully', 'success');
+}
+
+function importFile() { document.getElementById('importInput').click(); }
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const text = ev.target.result;
+      const match = text.match(/--- JSON Backup ---\n([\s\S]+)$/);
+      if (!match) { showToast('⚠️ Unrecognised format', 'error'); return; }
+      const imported = JSON.parse(match[1]);
+      if (!Array.isArray(imported)) throw new Error();
+      const existing = new Set(readings.map(r => r.id));
+      const newOnes = imported.filter(r => !existing.has(r.id));
+      readings = [...readings, ...newOnes].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+      save(); refresh();
+      showToast(`✅ Imported ${newOnes.length} new readings`, 'success');
+    } catch { showToast('⚠️ Import failed', 'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = '', 3000);
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('inputGlucose') === document.activeElement) addReading();
+});
+</script>
+</body>
+</html>
