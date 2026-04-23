@@ -237,12 +237,6 @@ Feel free to fork, experiment, and open a PR.
 
 ## ⭐ If You Like This
 
-Give it a star — or better, use it daily.
+* Give it a star — or better, use it daily.
 
 
-* 🎥 A polished demo GIF (huge impact)
-* 🖼️ Screenshot layout section (like product pages)
-* 🧪 Live demo via GitHub Pages
-* 🎯 Portfolio-optimized version (for recruiters)
-
-Just tell me 👍
